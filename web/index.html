@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>贵州茅台 公告数据采集与可视化大屏</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="screen">
+
+    <!-- ===================== 顶部标题栏 ===================== -->
+    <header class="header">
+        <div class="header-left">
+            <span class="logo-dot"></span>
+            <h1>贵州茅台 · 公告数据采集与可视化大屏</h1>
+            <span class="code-badge" id="stockBadge">600519</span>
+        </div>
+        <div class="header-right">
+            <span class="update-time">数据更新：<b id="updateTime">--</b></span>
+            <button class="btn" id="btnRefresh">重新采集</button>
+            <a class="btn btn-ghost" href="/api/download?format=xlsx">下载 Excel</a>
+            <a class="btn btn-ghost" href="/api/download?format=csv">下载 CSV</a>
+        </div>
+    </header>
+
+    <!-- ===================== KPI 指标卡 ===================== -->
+    <section class="kpi-row" id="kpiRow">
+        <div class="kpi-card">
+            <div class="kpi-label">公告总量</div>
+            <div class="kpi-value" id="kpiTotal">--</div>
+            <div class="kpi-sub">条</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">公告分类</div>
+            <div class="kpi-value" id="kpiCategory">--</div>
+            <div class="kpi-sub">类</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">覆盖区间</div>
+            <div class="kpi-value" id="kpiSpan">--</div>
+            <div class="kpi-sub">天</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">最新公告</div>
+            <div class="kpi-value small" id="kpiLatest">--</div>
+            <div class="kpi-sub">日期</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">数据来源</div>
+            <div class="kpi-value small" id="kpiSource">--</div>
+            <div class="kpi-sub">采集源</div>
+        </div>
+    </section>
+
+    <!-- ===================== 图表区 ===================== -->
+    <section class="chart-grid">
+        <div class="chart-card span-2">
+            <div class="card-title">月度公告数量趋势</div>
+            <div class="chart" id="chartTrend"></div>
+        </div>
+
+        <div class="chart-card">
+            <div class="card-title">公告分类占比</div>
+            <div class="chart" id="chartCategory"></div>
+        </div>
+
+        <div class="chart-card">
+            <div class="card-title">年度公告数量</div>
+            <div class="chart" id="chartYear"></div>
+        </div>
+
+        <div class="chart-card">
+            <div class="card-title">季度分布</div>
+            <div class="chart" id="chartQuarter"></div>
+        </div>
+
+        <div class="chart-card">
+            <div class="card-title">星期披露热力</div>
+            <div class="chart" id="chartWeekday"></div>
+        </div>
+
+        <div class="chart-card span-2">
+            <div class="card-title">最新公告播报</div>
+            <div class="news-scroll" id="newsList"></div>
+        </div>
+    </section>
+
+    <!-- ===================== 明细表格 ===================== -->
+    <section class="table-card">
+        <div class="table-head">
+            <div class="card-title">公告明细</div>
+            <div class="filters">
+                <select id="filterCategory">
+                    <option value="">全部分类</option>
+                </select>
+                <input type="text" id="filterKeyword" placeholder="搜索公告标题关键词">
+                <button class="btn btn-sm" id="btnSearch">查询</button>
+            </div>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th style="width:110px">发布日期</th>
+                    <th style="width:110px">分类</th>
+                    <th>公告标题</th>
+                    <th style="width:80px">类型</th>
+                    <th style="width:90px">操作</th>
+                </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+        <div class="pager">
+            <button class="btn btn-sm" id="btnPrev">上一页</button>
+            <span id="pageInfo">-- / --</span>
+            <button class="btn btn-sm" id="btnNext">下一页</button>
+            <span class="total-hint" id="totalHint"></span>
+        </div>
+    </section>
+
+    <footer class="footer">
+        数据链路：巨潮资讯网 / 新浪财经 → Requests + BeautifulSoup 采集 → Pandas 清洗
+        → Excel / CSV 导出 → SQLite 存储 → Flask API → ECharts 可视化
+    </footer>
+</div>
+
+<!-- 采集任务进度弹层 -->
+<div class="modal-mask" id="modalMask">
+    <div class="modal">
+        <div class="modal-title">正在执行采集流水线…</div>
+        <div class="modal-log" id="modalLog"></div>
+        <div class="modal-foot">
+            <button class="btn btn-sm" id="btnCloseModal" disabled>完成后关闭</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<script>
+    // CDN 不可用时自动切换到备用源，避免大屏白屏
+    if (typeof echarts === 'undefined') {
+        document.write('<script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.5.0/echarts.min.js"><\/script>');
+    }
+</script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
